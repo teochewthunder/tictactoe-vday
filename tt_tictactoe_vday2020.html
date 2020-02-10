@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Tic-tac-toe</title>
+
+		<style>
+			body
+			{
+				font-family: "Comic Sans MS";
+			}
+
+			h1
+			{
+				width: 30em;
+				text-align: center;
+				margin: 0 auto 0 auto;
+			}
+
+			.btn
+			{
+				font-family: "Comic Sans MS";
+				font-size: 2em;
+				display: block;
+				width: 5em;
+				height: 1.5em;
+				border-radius: 0.5em;
+				border: 0px solid;
+				background-color: #FF0000;
+				color: #FFFFFF;
+				margin: 1em auto 0 auto;
+			}
+
+			.btn:hover
+			{
+				background-color: #FF8888;
+				color: #FF0000;
+			}
+
+			#btnQuit, #game_container
+			{
+				display: none;
+			}
+
+			#board_container
+			{
+				width: 330px;
+				height: 330px;
+				margin: 0 auto 0 auto;
+				background-color: #FFCCCC;
+				padding-top: 10px;
+				padding-left: 10px;
+			}
+
+			.square
+			{
+				width: 100px;
+				height: 100px;
+				margin-right: 10px;
+				margin-bottom: 10px;
+				float: left;
+				outline: 1px solid #FFEEEE;
+				background-color: #FFFFFF;
+				cursor: pointer;
+			}
+
+			.x, .o
+			{
+				cursor: default;
+			}
+
+			.x:before, .o:before
+			{
+				display: block;
+				width: 80%;
+				height: 80%;
+				margin: 10% auto 0 auto;
+				font-weight: bold;
+				font-size: 3em;
+				text-align: center;
+			}
+
+			.x:before
+			{
+				content: "\2764";
+				color: #FF0000;
+			}
+
+			.o:before
+			{
+				content: "\2764";
+				color: #FF8888;
+			}
+
+			.win
+			{
+				background-color: #FF4444;
+			}
+
+			#user_x_container
+			{
+				color: #FF0000;
+			}
+
+			#user_o_container
+			{
+				color: #FF8888;
+			}
+
+			.player
+			{
+				width: 600px;
+				height: 150px;
+				margin: 0 auto 0 auto;
+			}
+
+			.token
+			{
+				width: 20%;
+				font-size: 5em;
+				float: left;
+				text-align: center;
+				padding: 10px;
+			}
+
+			.text
+			{
+				width: 70%;
+				font-size: 2em;
+				float: left;
+				text-align: left;
+				padding: 10px;
+				margin-top: 1.5em;
+			}
+		</style>
+
+		<script>
+			var game = 
+			{
+				turn: "x",
+				started: true,
+				board: 
+				[
+					{square: "a", value: ""},
+					{square: "b", value: ""},
+					{square: "c", value: ""},
+					{square: "d", value: ""},
+					{square: "e", value: ""},
+					{square: "f", value: ""},
+					{square: "g", value: ""},
+					{square: "h", value: ""},
+					{square: "i", value: ""}
+				],
+				winPatterns: 
+				[
+					[
+						{square: "a", value: ""},
+						{square: "b", value: ""},
+						{square: "c", value: ""}
+					],
+					[
+						{square: "a", value: ""},
+						{square: "d", value: ""},
+						{square: "g", value: ""}
+					],
+					[
+						{square: "a", value: ""},
+						{square: "e", value: ""},
+						{square: "i", value: ""}
+					],
+					[
+						{square: "b", value: ""},
+						{square: "e", value: ""},
+						{square: "h", value: ""}
+					],
+					[
+						{square: "c", value: ""},
+						{square: "f", value: ""},
+						{square: "i", value: ""}
+					],
+					[
+						{square: "c", value: ""},
+						{square: "e", value: ""},
+						{square: "g", value: ""}
+					],
+					[
+						{square: "d", value: ""},
+						{square: "e", value: ""},
+						{square: "f", value: ""}
+					],
+					[
+						{square: "g", value: ""},
+						{square: "h", value: ""},
+						{square: "i", value: ""}
+					]
+				],
+				init: function()
+				{
+					this.started = true;
+					this.turn = "x";
+
+					for (var i = 0; i < this.board.length; i++)
+					{
+						this.board[i].value = "";
+					}
+
+					for (var i = 0; i < this.winPatterns.length; i++)
+					{
+						for (var j = 0; j < this.winPatterns[i].length; j++)
+						{
+							this.winPatterns[i][j].value = "";
+						}
+					}
+
+					for (var i = 0; i < 9; i++)
+					{
+						document.getElementById("square" + i).className = "square";
+					}
+
+					var texts = document.getElementsByClassName("text");
+					for (var i = 0; i < texts.length; i++)
+					{
+						texts[i].innerHTML = "";
+					}
+
+					var tokens = document.getElementsByClassName("token");
+					for (var i = 0; i < tokens.length; i++)
+					{
+						tokens[i].innerHTML = "&#9786;";
+					}
+				},
+				play: function()
+				{
+					document.getElementById("btnPlay").style.display = "none";
+					document.getElementById("btnQuit").style.display = "block";
+					document.getElementById("game_container").style.display = "block";
+					this.nextTurn();
+				},
+				quit: function()
+				{
+					this.init();
+					document.getElementById("btnQuit").style.display = "none";
+					document.getElementById("btnPlay").style.display = "block";
+					document.getElementById("game_container").style.display = "none";
+				},
+				getRandomNumber: function(min, max)
+				{
+					return Math.floor((Math.random() * (min - max + 1)) + max);
+				},
+				getRandomBlankSquare: function()
+				{
+					var blanks = this.board.filter(function (x) {return x.value == ""});
+
+					if (blanks.length == 0)
+					{
+						return null;
+					}
+					else
+					{
+						var rand = this.getRandomNumber(0, blanks.length - 1);
+						return this.board.findIndex(function (x) {return x.square == blanks[rand].square});	
+					}
+				},
+				getFinalSquare: function(mark)
+				{
+					var blanks = this.board.filter(function (x) {return x.value == ""});
+
+					if (blanks.length == 0)
+					{
+						return null;
+					}
+					else
+					{
+						for (var i = 0; i < this.winPatterns.length; i++)
+						{
+							var marked = 0;
+							var filled = 0;
+							var finalSquare = null;
+
+							for (j = 0; j < 3; j++)
+							{
+								if (this.winPatterns[i][j].value == mark) marked++;
+								if (this.winPatterns[i][j].value != "") filled++;
+								if (this.winPatterns[i][j].value == "") finalSquare = this.winPatterns[i][j].square;
+							}
+
+							if (marked == 2 && filled < 3)
+							{
+								return this.board.findIndex(function (x) {return x.square == finalSquare});
+							}
+						}
+
+						return null;
+					}
+				},
+				nextTurn: function()
+				{
+					this.turn =  (this.turn == "x" ? "o" : "x"); 
+					user.myTurn();
+				},
+				checkWin: function(mark)
+				{
+					var findSquare;
+
+					for (var i = 0; i < this.winPatterns.length; i++)
+					{
+						if (this.winPatterns[i][0].value == mark && this.winPatterns[i][1].value == mark && this.winPatterns[i][2].value == mark)
+						{
+							for (var j = 0; j < 3; j++)
+							{
+								var winPatterns = this.winPatterns;
+								findSquare = this.board.findIndex(function (x) {return x.square == winPatterns[i][j].square});
+								document.getElementById("square" + findSquare).className += " win";							
+							}
+
+							return true;
+						}	
+					}
+
+					return false;
+				},
+				getRandomRemark: function()
+				{
+					var remarks = 
+					[
+						{face: "&#9786;", text: "Looks like it's my turn!"},
+						{face: "&#9854;", text: "Brilliant move!"},
+						{face: "&#9785;", text: "Ouch!"},
+						{face: "&#9863;", text: "Um..."},
+						{face: "&#9863;", text: "This is hard."},
+						{face: "&#9786;", text: "Let me see..."},
+						{face: "&#9786;", text: "I'm gonna cream you!"},
+						{face: "&#9786;", text: "Ooh. Nice."}
+					];
+
+					var rand = this.getRandomNumber(0, remarks.length - 1);
+					return remarks[rand];	
+				}				
+			}
+
+			var user = 
+			{
+				takeTurn: function(square, mark)
+				{
+					if (mark == game.turn && game.started)
+					{
+						if (game.board[square].value == "") 
+						{
+							game.board[square].value = mark;
+
+							for (var i = 0; i < game.winPatterns.length; i++)
+							{
+								for (var j = 0; j < game.winPatterns[i].length; j++)
+								{
+									if (game.winPatterns[i][j].square == game.board[square].square)
+									{
+										game.winPatterns[i][j].value = mark;
+									}	
+								}
+							}
+
+							document.getElementById("square" + square).className = "square " + mark;
+
+							if (game.checkWin(mark)) 
+							{
+								document.getElementById("user_" + mark + "_face").innerHTML = "&#9786";
+								document.getElementById("user_" + mark + "_text").innerHTML = "I win!";
+								game.started = false;
+							}
+							else
+							{
+								game.nextTurn();
+							}	
+						}
+					}
+				},
+				myTurn: function()
+				{
+					document.getElementById("user_x_text").innerHTML = "";
+					document.getElementById("user_o_text").innerHTML = "";
+
+					var remark = game.getRandomRemark();
+					document.getElementById("user_" + game.turn + "_text").innerHTML = remark.text;
+					document.getElementById("user_" + game.turn + "_face").innerHTML = remark.face;
+
+					if (game.turn == "x")
+					{
+						setTimeout
+						(
+							function() 
+							{
+								var finalSquare = game.getFinalSquare("x");
+
+								if (finalSquare == null)
+								{
+									finalSquare = game.getFinalSquare("o");
+
+									if (finalSquare == null)
+									{
+										var randomBlankSquare = game.getRandomBlankSquare();
+
+										if (randomBlankSquare == null)
+										{
+											document.getElementById("user_" + game.turn + "_face").innerHTML = "&#9786";
+											document.getElementById("user_" + game.turn + "_text").innerHTML = "Looks like it's a draw.";
+											game.started = false;
+										}
+										else
+										{
+											user.takeTurn(randomBlankSquare, "x");
+										}
+									}
+									else
+									{
+										user.takeTurn(finalSquare, "x");
+									}
+								}
+								else
+								{
+									user.takeTurn(finalSquare, "x");
+								}
+							},
+							1000
+						)	
+					}
+				}
+			}
+		</script>
+	</head>
+
+	<body>
+		<h1>Let's play Tic-tac-t&hearts;e!</h1>
+		
+		<button id="btnPlay" class="btn" onclick="game.play()">PLAY</button>
+		<button id="btnQuit" class="btn" onclick="game.quit()">QUIT</button>
+
+		<div id="game_container">
+			<div id="user_x_container" class="player">
+				<div class="token" id="user_x_face">&#9786;</div>
+				<div id="user_x_text" class="text"></div>
+			</div>
+
+			<div id="board_container">
+				<div id="square0" class="square" onclick="user.takeTurn(0, 'o');"></div>
+				<div id="square1" class="square" onclick="user.takeTurn(1, 'o');"></div>
+				<div id="square2" class="square" onclick="user.takeTurn(2, 'o');"></div>
+				<div id="square3" class="square" onclick="user.takeTurn(3, 'o');"></div>
+				<div id="square4" class="square" onclick="user.takeTurn(4, 'o');"></div>
+				<div id="square5" class="square" onclick="user.takeTurn(5, 'o');"></div>
+				<div id="square6" class="square" onclick="user.takeTurn(6, 'o');"></div>
+				<div id="square7" class="square" onclick="user.takeTurn(7, 'o');"></div>
+				<div id="square8" class="square" onclick="user.takeTurn(8, 'o');"></div>
+			</div>
+
+			<div id="user_o_container" class="player">
+				<div class="token" id="user_o_face">&#9786;</div>
+				<div id="user_o_text" class="text"></div>
+			</div>
+		</div>
+	</body>
+</html>
